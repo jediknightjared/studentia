@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  email     String   @unique
+  passwordHash String
+  name      String
+  canvasAPIKey String?
+  courses   Course[]
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id        String      @id @default(uuid())
+  canvasId  Int?      @unique
+  name      String
+  courseCode String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  assignments Assignment[]
+  createdAt DateTime @default(now())
+}
+
+model Assignment {
+  id          String      @id @default(uuid())
+  canvasId    Int?      @unique
+  name        String
+  description String
+  dueDate     DateTime?
+  unlockAt    DateTime?
+  lockAt      DateTime?
+  htmlURL     String?
+  allowedAttempts Int
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  createdAt   DateTime @default(now())
+}
