@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { signToken } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, signToken, TOKEN_EXPIRATION } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,15 @@ export async function POST(request: NextRequest) {
 
     const token = signToken({ userId: user.id });
 
-    return NextResponse.json({ token });
+    const cookieStore = await cookies();
+    cookieStore.set(AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 60 * 60 * 24 * TOKEN_EXPIRATION,
+      path: "/"
+    });
+
+    return NextResponse.json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error);
     return NextResponse.json({ error: "Failed to register user" }, { status: 500 });
