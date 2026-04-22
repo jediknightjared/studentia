@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
-import { AUTH_COOKIE_NAME, signToken, TOKEN_EXPIRATION } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, hashPassword, signToken, TOKEN_EXPIRATION } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -9,7 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, name } = body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
       data: {

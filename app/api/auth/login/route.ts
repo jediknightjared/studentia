@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
-import { AUTH_COOKIE_NAME, signToken, TOKEN_EXPIRATION } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, comparePasswords, hashPassword, signToken, TOKEN_EXPIRATION } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -19,16 +18,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function login(email: string, password: string) {
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await hashPassword(password);
 
   const user = await prisma.user.findUnique({
     where: {
-      email,
-      passwordHash: hashedPassword
+      email
     }
   });
 
-  if (user === null) throw new Error("Invalid email or password");
+  if (user === null) throw new Error("Invalid email");
+
+  const isMatch = await comparePasswords(password, user.passwordHash);
+  if (!isMatch) throw new Error("Invalid password");
 
   const token = signToken({ userId: user.id });
 

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const JWT_SECRET = process.env["JWT_SECRET"]!;
 
@@ -16,4 +17,12 @@ export function verifyToken(token: string) {
     console.error("Failed to verify token:", err);
     return null;
   }
+}
+
+export async function hashPassword(password: string) {
+  return await bcrypt.hash(password, 10);
+}
+
+export async function comparePasswords(password: string, hash: string) {
+  return await bcrypt.compare(password, hash);
 }
